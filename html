@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Percakapan — Ruang Obrol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C2B2A;
+    --ink-soft:#24403C;
+    --ink-softer:#2C4C47;
+    --paper:#EAEDE4;
+    --panel:#FFFFFF;
+    --accent:#C08A28;
+    --accent-deep:#93691D;
+    --bubble-out:#2F5D55;
+    --bubble-out-text:#F3F1E7;
+    --bubble-in:#FFFFFF;
+    --text:#1B2422;
+    --text-muted:#6B7573;
+    --border:#DBDBCD;
+    --border-soft:#E4E4D8;
+    --unread:#C08A28;
+    --radius-lg:18px;
+    --radius-md:12px;
+    --radius-sm:8px;
+  }
+ 
+  [data-theme="dark"]{
+    --paper:#131C1B;
+    --panel:#1B2726;
+    --text:#EDEFE7;
+    --text-muted:#93A19D;
+    --border:#2A3A38;
+    --border-soft:#233230;
+    --bubble-in:#233230;
+    --bubble-out-text:#F3F1E7;
+  }
+ 
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--paper);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+ 
+  .app{
+    display:flex;
+    height:100vh;
+    max-width:1180px;
+    margin:0 auto;
+    background:var(--paper);
+    overflow:hidden;
+  }
+ 
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:340px;
+    min-width:340px;
+    background:var(--ink);
+    color:#DCE6E3;
+    display:flex;
+    flex-direction:column;
+    border-right:1px solid rgba(0,0,0,.25);
+  }
+ 
+  .sidebar-top{
+    padding:22px 20px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+ 
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .brand-mark{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    font-weight:600;
+    color:#F3EFE2;
+    letter-spacing:.2px;
+  }
+  .brand-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--accent);
+    display:inline-block;
+  }
+ 
+  .icon-btn{
+    width:34px;height:34px;
+    border-radius:50%;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(255,255,255,.05);
+    color:#DCE6E3;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    transition:background .15s ease;
+  }
+  .icon-btn:hover{background:rgba(255,255,255,.12);}
+  .icon-btn svg{width:16px;height:16px;}
+ 
+  .search-wrap{
+    padding:0 16px 14px;
+  }
+  .search-box{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:rgba(255,255,255,.07);
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:999px;
+    padding:9px 14px;
+  }
+  .search-box svg{width:15px;height:15px;flex-shrink:0;color:#9BB0AB;}
+  .search-box input{
+    background:none;
+    border:none;
+    outline:none;
+    color:#EDEFE7;
+    font-size:14px;
+    font-family:inherit;
+    width:100%;
+  }
+  .search-box input::placeholder{color:#7E938E;}
+ 
+  .contact-list{
+    flex:1;
+    overflow-y:auto;
+    padding:4px 8px 12px;
+  }
+  .contact-list::-webkit-scrollbar{width:6px;}
+  .contact-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12);border-radius:4px;}
+ 
+  .contact{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:11px 12px;
+    border-radius:var(--radius-md);
+    cursor:pointer;
+    transition:background .15s ease;
+    position:relative;
+  }
+  .contact:hover{background:rgba(255,255,255,.06);}
+  .contact.active{background:var(--ink-softer);}
+  .contact.active::before{
+    content:"";
+    position:absolute;
+    left:-8px;top:14px;bottom:14px;
+    width:3px;
+    border-radius:3px;
+    background:var(--accent);
+  }
+ 
+  .avatar{
+    width:44px;height:44px;
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:16px;
+    color:#1C2B2A;
+    flex-shrink:0;
+    position:relative;
+  }
+  .status-dot{
+    position:absolute;
+    bottom:-1px;right:-1px;
+    width:11px;height:11px;
+    border-radius:50%;
+    background:#3FA678;
+    border:2.5px solid var(--ink);
+  }
+  .contact.active .status-dot{border-color:var(--ink-softer);}
+ 
+  .contact-info{
+    flex:1;
+    min-width:0;
+  }
+  .contact-name-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    gap:8px;
+  }
+  .contact-name{
+    font-size:14.5px;
+    font-weight:600;
+    color:#F1EFE3;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .contact-time{
+    font-size:11.5px;
+    color:#8CA19C;
+    flex-shrink:0;
+  }
+  .contact-preview-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    margin-top:2px;
+  }
+  .contact-preview{
+    font-size:13px;
+    color:#94A8A3;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .unread-badge{
+    min-width:19px;
+    height:19px;
+    padding:0 5px;
+    border-radius:999px;
+    background:var(--unread);
+    color:#1C2B2A;
+    font-size:11px;
+    font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+ 
+  .sidebar-footer{
+    padding:14px 20px;
+    border-top:1px solid rgba(255,255,255,.08);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .me-avatar{
+    width:32px;height:32px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#C08A28,#8C6620);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:13px;
+    color:#1C2B2A;
+  }
+  .me-name{font-size:13px;color:#C9D6D2;font-weight:500;}
+  .me-tag{font-size:11.5px;color:#7E938E;}
+ 
+  /* ---------- Chat panel ---------- */
+  .chat-panel{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    background:var(--panel);
+    min-width:0;
+  }
+ 
+  .chat-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:14px 22px;
+    border-bottom:1px solid var(--border-soft);
+    background:var(--panel);
+  }
+  .back-btn{
+    display:none;
+    border:none;background:none;
+    cursor:pointer;
+    color:var(--text);
+    padding:4px;
+  }
+  .back-btn svg{width:20px;height:20px;}
+ 
+  .chat-header .avatar{width:40px;height:40px;font-size:14px;}
+  .chat-header-info{flex:1;min-width:0;}
+  .chat-header-name{font-size:15px;font-weight:600;color:var(--text);}
+  .chat-header-status{font-size:12.5px;color:var(--text-muted);margin-top:1px;}
+  .chat-header-status.typing{color:var(--accent-deep);font-weight:500;}
+ 
+  .header-actions{display:flex;gap:6px;}
+  .header-actions .icon-btn{
+    border-color:var(--border);
+    background:transparent;
+    color:var(--text-muted);
+  }
+  .header-actions .icon-btn:hover{background:var(--paper);}
+ 
+  .theme-toggle{
+    border-color:var(--border);
+    background:transparent;
+    color:var(--text-muted);
+  }
+ 
+  .messages{
+    flex:1;
+    overflow-y:auto;
+    padding:22px 26px;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    background:
+      radial-gradient(circle at 1px 1px, rgba(0,0,0,.035) 1px, transparent 1px) var(--paper);
+    background-size:16px 16px;
+  }
+  [data-theme="dark"] .messages{
+    background:
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,.03) 1px, transparent 1px) var(--paper);
+    background-size:16px 16px;
+  }
+  .messages::-webkit-scrollbar{width:7px;}
+  .messages::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:4px;}
+ 
+  .day-divider{
+    align-self:center;
+    background:var(--panel);
+    border:1px solid var(--border-soft);
+    color:var(--text-muted);
+    font-size:12px;
+    padding:5px 14px;
+    border-radius:999px;
+    margin:10px 0 16px;
+  }
+ 
+  .bubble-row{
+    display:flex;
+    margin-bottom:9px;
+  }
+  .bubble-row.out{justify-content:flex-end;}
+  .bubble-row.in{justify-content:flex-start;}
+ 
+  .bubble{
+    max-width:62%;
+    padding:9px 13px 8px;
+    font-size:14.5px;
+    line-height:1.42;
+    position:relative;
+  }
+  .bubble-row.in .bubble{
+    background:var(--bubble-in);
+    color:var(--text);
+    border:1px solid var(--border-soft);
+    border-radius:4px var(--radius-lg) var(--radius-lg) var(--radius-lg);
+  }
+  .bubble-row.out .bubble{
+    background:var(--bubble-out);
+    color:var(--bubble-out-text);
+    border-radius:var(--radius-lg) 4px var(--radius-lg) var(--radius-lg);
+  }
+ 
+  .bubble-meta{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:4px;
+    margin-top:3px;
+    font-size:10.5px;
+  }
+  .bubble-row.in .bubble-meta{color:var(--text-muted);}
+  .bubble-row.out .bubble-meta{color:rgba(243,241,231,.72);}
+  .tick{width:14px;height:10px;}
+ 
+  .typing-row{display:flex;justify-content:flex-start;margin-bottom:9px;}
+  .typing-bubble{
+    background:var(--bubble-in);
+    border:1px solid var(--border-soft);
+    border-radius:4px var(--radius-lg) var(--radius-lg) var(--radius-lg);
+    padding:12px 16px;
+    display:flex;
+    gap:4px;
+  }
+  .typing-bubble span{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--text-muted);
+    animation:bounce 1.2s infinite ease-in-out;
+  }
+  .typing-bubble span:nth-child(2){animation-delay:.15s;}
+  .typing-bubble span:nth-child(3){animation-delay:.3s;}
+  @keyframes bounce{
+    0%,60%,100%{transform:translateY(0);opacity:.5;}
+    30%{transform:translateY(-4px);opacity:1;}
+  }
+ 
+  .composer{
+    display:flex;
+    align-items:flex-end;
+    gap:10px;
+    padding:14px 20px;
+    border-top:1px solid var(--border-soft);
+    background:var(--panel);
+  }
+  .composer .icon-btn{
+    border-color:var(--border);
+    background:transparent;
+    color:var(--text-muted);
+    flex-shrink:0;
+  }
+  .composer .icon-btn:hover{background:var(--paper);}
+ 
+  .composer-input-wrap{
+    flex:1;
+    background:var(--paper);
+    border:1px solid var(--border);
+    border-radius:22px;
+    padding:2px 6px 2px 16px;
+    display:flex;
+    align-items:center;
+  }
+  .composer-input{
+    flex:1;
+    border:none;
+    background:none;
+    outline:none;
+    resize:none;
+    font-family:inherit;
+    font-size:14.5px;
+    color:var(--text);
+    padding:10px 0;
+    max-height:110px;
+    line-height:1.35;
+  }
+  .composer-input::placeholder{color:var(--text-muted);}
+ 
+  .send-btn{
+    width:38px;height:38px;
+    border-radius:50%;
+    border:none;
+    background:var(--accent);
+    color:#1C2B2A;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    transition:transform .12s ease, background .15s ease;
+  }
+  .send-btn:hover{background:var(--accent-deep);}
+  .send-btn:active{transform:scale(.92);}
+  .send-btn svg{width:17px;height:17px;margin-left:1px;}
+  .send-btn:disabled{opacity:.4;cursor:default;}
+  .send-btn:disabled:hover{background:var(--accent);}
+ 
+  .empty-state{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    color:var(--text-muted);
+    text-align:center;
+    padding:40px;
+  }
+  .empty-state .brand-mark{font-size:26px;color:var(--text);}
+  .empty-state p{max-width:280px;font-size:13.5px;margin:0;}
+ 
+  /* ---------- Responsive ---------- */
+  @media (max-width:820px){
+    .app{max-width:100%;}
+    .sidebar{
+      width:100%;
+      min-width:0;
+      position:absolute;
+      inset:0;
+      z-index:2;
+      transition:transform .25s ease;
+    }
+    .chat-panel{width:100%;}
+    .app.chat-open .sidebar{transform:translateX(-100%);}
+    .back-btn{display:flex;}
+  }
+ 
+  :focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+  }
+ 
+  @media (prefers-reduced-motion:reduce){
+    *{animation-duration:.001ms !important; transition-duration:.001ms !important;}
+  }
+</style>
+</head>
+<body>
+ 
+<div class="app" id="app">
+ 
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="brand">
+        <span class="brand-mark">Percakapan</span>
+        <span class="brand-dot"></span>
+      </div>
+      <button class="icon-btn theme-toggle" id="themeToggle" title="Ganti tema" aria-label="Ganti tema terang/gelap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v1M12 20v1M4.2 4.2l.7.7M19.1 19.1l.7.7M3 12h1M20 12h1M4.2 19.8l.7-.7M19.1 4.9l.7-.7"/><circle cx="12" cy="12" r="4.2"/></svg>
+      </button>
+    </div>
+ 
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+        <input type="text" id="searchInput" placeholder="Cari percakapan…" autocomplete="off">
+      </div>
+    </div>
+ 
+    <div class="contact-list" id="contactList"></div>
+ 
+    <div class="sidebar-footer">
+      <div class="me-avatar">AN</div>
+      <div>
+        <div class="me-name">Anda</div>
+        <div class="me-tag">Aktif sekarang</div>
+      </div>
+    </div>
+  </aside>
+ 
+  <!-- ================= CHAT PANEL ================= -->
+  <main class="chat-panel" id="chatPanel"></main>
+ 
+</div>
+ 
+<script>
+(function(){
+  "use strict";
+ 
+  /* ---------------- Data ---------------- */
+  const palette = ["#C9E4DE","#F6DFA6","#E8C4C4","#C7D9E5","#D8CBE8","#F3D6BA","#BEE3DB","#F2D0A4","#D9C2D0","#C3D6C1","#F0C9C9","#CBD4E8"];
+ 
+  const contacts = [
+    {
+      id: "dinda",
+      name: "Dinda Pratiwi",
+      color: palette[0],
+      online: true,
+      messages: [
+        {from:"in",  text:"Bro, jadi meeting jam 2 apa jam 3?", time:"09:12"},
+        {from:"out", text:"Jam 3 ya, ada pergeseran sedikit", time:"09:14", read:true},
+        {from:"in",  text:"Oke siap, aku siapin materinya dulu", time:"09:15"},
+        {from:"in",  text:"Btw file desainnya udah kelar belum?", time:"09:16"}
+      ]
+    },
+    {
+      id: "tim-proyek",
+      name: "Tim Proyek Aurora",
+      color: palette[1],
+      online: false,
+      lastSeen: "terakhir dilihat 08:40",
+      messages: [
+        {from:"in",  text:"Reminder: deploy staging malam ini jam 9", time:"08:02"},
+        {from:"out", text:"Noted, aku bantu cek log setelahnya", time:"08:05", read:true},
+        {from:"in",  text:"Mantap, terima kasih!", time:"08:06"}
+      ]
+    },
+    {
+      id: "raka",
+      name: "Raka Wibowo",
+      color: palette[2],
+      online: true,
+      messages: [
+        {from:"out", text:"Weekend ini jadi mancing gak?", time:"Kemarin", read:true},
+        {from:"in",  text:"Jadi dong, jam 6 pagi kumpul di dermaga", time:"Kemarin"},
+        {from:"out", text:"Sip, aku bawa kopi", time:"Kemarin", read:true}
+      ]
+    },
+    {
+      id: "ibu",
+      name: "Ibu",
+      color: palette[3],
+      online: false,
+      lastSeen: "terakhir dilihat kemarin",
+      messages: [
+        {from:"in",  text:"Nak, jangan lupa makan siang ya", time:"Kemarin"},
+        {from:"out", text:"Siap bu, sudah kok tadi 😊", time:"Kemarin", read:true}
+      ]
+    },
+    {
+      id: "sella",
+      name: "Sella Amara",
+      color: palette[4],
+      online: true,
+      messages: [
+        {from:"in",  text:"Selamat ya atas launching produknya! 🎉", time:"Sen"},
+        {from:"out", text:"Terima kasih Sella!", time:"Sen", read:true}
+      ]
+    },
+    {
+      id: "pak-bayu",
+      name: "Pak Bayu (Klien)",
+      color: palette[5],
+      online: false,
+      lastSeen: "terakhir dilihat Senin",
+      messages: [
+        {from:"in",  text:"Invoice bulan ini sudah kami transfer", time:"Sen"},
+        {from:"in",  text:"Mohon dikonfirmasi jika sudah diterima", time:"Sen"}
+      ]
+    },
+    {
+      id: "arif",
+      name: "Arif Setiawan",
+      color: palette[6],
+      online: true,
+      messages: [
+        {from:"in",  text:"Bang, laptop kantor bisa dipinjam gak buat besok?", time:"10:20"},
+        {from:"out", text:"Bisa, ambil aja di meja aku", time:"10:22", read:true},
+        {from:"in",  text:"Sip makasih banyak", time:"10:23"}
+      ]
+    },
+    {
+      id: "keluarga-besar",
+      name: "Keluarga Besar",
+      color: palette[7],
+      online: false,
+      lastSeen: "terakhir dilihat 07:15",
+      messages: [
+        {from:"in",  text:"Lebaran tahun ini kumpul di rumah Bude ya", time:"07:10"},
+        {from:"in",  text:"Yang mau bawa oleh-oleh boleh, gausah maksa", time:"07:12"},
+        {from:"out", text:"Siap, aku bawa kue kering", time:"07:15", read:true}
+      ]
+    },
+    {
+      id: "nadia",
+      name: "Nadia Kusuma",
+      color: palette[8],
+      online: true,
+      messages: [
+        {from:"out", text:"Referensi warna buat logo udah aku kirim ya", time:"11:40", read:true},
+        {from:"in",  text:"Siap, ini bagus banget palettenya", time:"11:45"},
+        {from:"in",  text:"Kita pakai yang nomor 2 aja gimana?", time:"11:46"}
+      ]
+    },
+    {
+      id: "pak-rt",
+      name: "Pak RT 05",
+      color: palette[9],
+      online: false,
+      lastSeen: "terakhir dilihat kemarin",
+      messages: [
+        {from:"in",  text:"Warga yth, kerja bakti hari Minggu jam 7 pagi", time:"Kemarin"},
+        {from:"in",  text:"Mohon partisipasinya, terima kasih", time:"Kemarin"}
+      ]
+    },
+    {
+      id: "fajar",
+      name: "Fajar Ramadhan",
+      color: palette[10],
+      online: true,
+      messages: [
+        {from:"in",  text:"Eh jadi nonton bola malam ini?", time:"Sel"},
+        {from:"out", text:"Jadi, di tempat biasa jam 8", time:"Sel", read:true},
+        {from:"in",  text:"Oke gas, aku bawa cemilan", time:"Sel"}
+      ]
+    },
+    {
+      id: "customer-service",
+      name: "CS Toko Berkah",
+      color: palette[11],
+      online: false,
+      lastSeen: "terakhir dilihat Minggu",
+      messages: [
+        {from:"in",  text:"Terima kasih sudah berbelanja di toko kami 🙏", time:"Min"},
+        {from:"in",  text:"Pesanan Anda sedang dikemas dan akan segera dikirim", time:"Min"}
+      ]
+    }
+  ];
+ 
+  const autoReplies = [
+    "Oke, aku cek dulu ya.",
+    "Siap, ditunggu kabarnya!",
+    "Hehe iya betul.",
+    "Wah baru tahu aku, makasih infonya.",
+    "Boleh, nanti kukabari lagi.",
+    "Noted 👍"
+  ];
+ 
+  let activeId = contacts[0].id;
+  let unread = {"tim-proyek": 1, "ibu": 1, "keluarga-besar": 2, "pak-rt": 1, "customer-service": 1};
+ 
+  // FIX: per-contact timer/queue state instead of one shared `typingTimeout`.
+  // Keyed by contact id so sending to one contact can never cancel a
+  // reply that is already queued for a different (or the same) contact.
+  const contactState = {};
+  function getState(id){
+    if(!contactState[id]) contactState[id] = { replyQueue: Promise.resolve() };
+    return contactState[id];
+  }
+ 
+  /* ---------------- Helpers ---------------- */
+  function initials(name){
+    return name.split(" ").filter(Boolean).slice(0,2).map(w=>w[0]).join("").toUpperCase();
+  }
+ 
+  function nowTime(){
+    const d = new Date();
+    const h = String(d.getHours()).padStart(2,"0");
+    const m = String(d.getMinutes()).padStart(2,"0");
+    return h+":"+m;
+  }
+ 
+  function escapeHtml(str){
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+ 
+  function getContact(id){
+    return contacts.find(c => c.id === id);
+  }
+ 
+  const tickSvg = `<svg class="tick" viewBox="0 0 16 11" fill="none"><path d="M1 5.5L4.5 9L11 1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 5.5L9 9L15.5 1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+ 
+  /* ---------------- Render sidebar ---------------- */
+  function renderContactList(filter){
+    const list = document.getElementById("contactList");
+    const q = (filter || "").trim().toLowerCase();
+    list.innerHTML = "";
+ 
+    contacts
+      .filter(c => c.name.toLowerCase().includes(q))
+      .forEach(c => {
+        const last = c.messages[c.messages.length - 1];
+        const item = document.createElement("div");
+        item.className = "contact" + (c.id === activeId ? " active" : "");
+        item.setAttribute("role","button");
+        item.tabIndex = 0;
+        item.dataset.id = c.id;
+ 
+        const badge = unread[c.id]
+          ? `<span class="unread-badge">${unread[c.id]}</span>` : "";
+ 
+        item.innerHTML = `
+          <div class="avatar" style="background:${c.color}">
+            ${initials(c.name)}
+            ${c.online ? '<span class="status-dot"></span>' : ""}
+          </div>
+          <div class="contact-info">
+            <div class="contact-name-row">
+              <span class="contact-name">${escapeHtml(c.name)}</span>
+              <span class="contact-time">${last ? last.time : ""}</span>
+            </div>
+            <div class="contact-preview-row">
+              <span class="contact-preview">${last ? escapeHtml(last.text) : ""}</span>
+              ${badge}
+            </div>
+          </div>`;
+ 
+        item.addEventListener("click", () => openChat(c.id));
+        item.addEventListener("keydown", (e) => {
+          if(e.key === "Enter" || e.key === " "){ e.preventDefault(); openChat(c.id); }
+        });
+ 
+        list.appendChild(item);
+      });
+  }
+ 
+  /* ---------------- Render chat panel ---------------- */
+  function renderChatPanel(){
+    const panel = document.getElementById("chatPanel");
+    const c = getContact(activeId);
+ 
+    if(!c){
+      panel.innerHTML = `
+        <div class="empty-state">
+          <span class="brand-mark">Percakapan</span>
+          <p>Pilih salah satu obrolan di sebelah kiri untuk mulai membaca dan membalas pesan.</p>
+        </div>`;
+      return;
+    }
+ 
+    panel.innerHTML = `
+      <header class="chat-header">
+        <button class="back-btn" id="backBtn" aria-label="Kembali ke daftar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div class="avatar" style="background:${c.color}">
+          ${initials(c.name)}
+          ${c.online ? '<span class="status-dot"></span>' : ""}
+        </div>
+        <div class="chat-header-info">
+          <div class="chat-header-name">${escapeHtml(c.name)}</div>
+          <div class="chat-header-status" id="statusText">${c.online ? "online" : (c.lastSeen || "")}</div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" title="Cari dalam obrolan" aria-label="Cari dalam obrolan">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg>
+          </button>
+          <button class="icon-btn" title="Info kontak" aria-label="Info kontak">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="8" r=".6" fill="currentColor"/></svg>
+          </button>
+        </div>
+      </header>
+ 
+      <div class="messages" id="messages"></div>
+ 
+      <footer class="composer">
+        <button class="icon-btn" title="Lampirkan berkas" aria-label="Lampirkan berkas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.5l-8.5 8.5a4.2 4.2 0 01-6-6l8.2-8.2a2.8 2.8 0 014 4L10.4 19a1.4 1.4 0 01-2-2l7-7"/></svg>
+        </button>
+        <div class="composer-input-wrap">
+          <textarea class="composer-input" id="composerInput" placeholder="Tulis pesan…" rows="1"></textarea>
+        </div>
+        <button class="send-btn" id="sendBtn" aria-label="Kirim pesan" disabled>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 20l18-8L3 4v6l12 2-12 2v6z"/></svg>
+        </button>
+      </footer>
+    `;
+ 
+    renderMessages();
+ 
+    // wiring
+    const backBtn = document.getElementById("backBtn");
+    if(backBtn){
+      backBtn.addEventListener("click", () => {
+        document.getElementById("app").classList.remove("chat-open");
+      });
+    }
+ 
+    const input = document.getElementById("composerInput");
+    const sendBtn = document.getElementById("sendBtn");
+ 
+    function refreshSendState(){
+      sendBtn.disabled = input.value.trim().length === 0;
+    }
+ 
+    input.addEventListener("input", () => {
+      input.style.height = "auto";
+      input.style.height = Math.min(input.scrollHeight, 110) + "px";
+      refreshSendState();
+    });
+ 
+    input.addEventListener("keydown", (e) => {
+      if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        trySend();
+      }
+    });
+ 
+    sendBtn.addEventListener("click", trySend);
+ 
+    function trySend(){
+      const val = input.value.trim();
+      if(!val) return;
+      sendMessage(val);
+      input.value = "";
+      input.style.height = "auto";
+      refreshSendState();
+      input.focus();
+    }
+ 
+    refreshSendState();
+  }
+ 
+  function renderMessages(){
+    const c = getContact(activeId);
+    const box = document.getElementById("messages");
+    if(!box || !c) return;
+ 
+    box.innerHTML = `<div class="day-divider">Hari ini</div>`;
+ 
+    c.messages.forEach(m => {
+      const row = document.createElement("div");
+      row.className = "bubble-row " + m.from;
+      const meta = m.from === "out"
+        ? `<div class="bubble-meta"><span>${m.time}</span>${m.read ? tickSvg : ""}</div>`
+        : `<div class="bubble-meta"><span>${m.time}</span></div>`;
+      row.innerHTML = `<div class="bubble">${escapeHtml(m.text)}${meta}</div>`;
+      box.appendChild(row);
+    });
+ 
+    box.scrollTop = box.scrollHeight;
+  }
+ 
+  function showTyping(){
+    const c = getContact(activeId);
+    const box = document.getElementById("messages");
+    const statusEl = document.getElementById("statusText");
+    if(!box || !c) return;
+ 
+    // FIX: remove any stray indicator first so two bubbles never stack.
+    const existing = document.getElementById("typingRow");
+    if(existing) existing.remove();
+ 
+    if(statusEl) statusEl.textContent = "sedang mengetik…";
+    if(statusEl) statusEl.classList.add("typing");
+ 
+    const row = document.createElement("div");
+    row.className = "typing-row";
+    row.id = "typingRow";
+    row.innerHTML = `<div class="typing-bubble"><span></span><span></span><span></span></div>`;
+    box.appendChild(row);
+    box.scrollTop = box.scrollHeight;
+  }
+ 
+  function hideTyping(){
+    const row = document.getElementById("typingRow");
+    if(row) row.remove();
+    const statusEl = document.getElementById("statusText");
+    if(statusEl){
+      statusEl.classList.remove("typing");
+      const c = getContact(activeId);
+      if(c) statusEl.textContent = c.online ? "online" : (c.lastSeen || "");
+    }
+  }
+ 
+  function sendMessage(text){
+    const c = getContact(activeId);
+    if(!c) return;
+ 
+    c.messages.push({from:"out", text, time: nowTime(), read:false});
+    renderMessages();
+    renderContactList(document.getElementById("searchInput").value);
+ 
+    const state = getState(c.id);
+ 
+    // Mark the message read shortly after sending. This only touches the
+    // data model + re-renders the bubble tick if this chat is still open —
+    // it no longer assumes the chat you're viewing is still this contact.
+    setTimeout(() => {
+      const last = c.messages[c.messages.length - 1];
+      if(last) last.read = true;
+      if(activeId === c.id) renderMessages();
+    }, 500);
+ 
+    // FIX: queue this reply after any reply already pending for the same
+    // contact, instead of clearing a shared timer. Every sent message now
+    // gets answered — nothing gets silently cancelled by a fast follow-up
+    // message, and nothing gets dropped if you switch chats meanwhile.
+    state.replyQueue = state.replyQueue.then(() => new Promise((resolve) => {
+      if(activeId === c.id) showTyping();
+ 
+      const delay = 1600 + Math.random() * 900;
+      setTimeout(() => {
+        if(activeId === c.id) hideTyping();
+ 
+        const reply = autoReplies[Math.floor(Math.random() * autoReplies.length)];
+        c.messages.push({from:"in", text: reply, time: nowTime()});
+ 
+        if(activeId === c.id){
+          renderMessages();
+        } else {
+          unread[c.id] = (unread[c.id] || 0) + 1;
+        }
+        renderContactList(document.getElementById("searchInput").value);
+        resolve();
+      }, delay);
+    }));
+  }
+ 
+  function openChat(id){
+    activeId = id;
+    delete unread[id];
+    renderContactList(document.getElementById("searchInput").value);
+    renderChatPanel();
+    document.getElementById("app").classList.add("chat-open");
+  }
+ 
+  /* ---------------- Theme ---------------- */
+  function initTheme(){
+    const root = document.documentElement;
+    const btn = document.getElementById("themeToggle");
+    let dark = false;
+    try {
+      dark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    } catch(e){ /* ignore */ }
+    if(dark) root.setAttribute("data-theme","dark");
+ 
+    btn.addEventListener("click", () => {
+      const isDark = root.getAttribute("data-theme") === "dark";
+      if(isDark){ root.removeAttribute("data-theme"); }
+      else{ root.setAttribute("data-theme","dark"); }
+    });
+  }
+ 
+  /* ---------------- Init ---------------- */
+  function init(){
+    renderContactList("");
+    renderChatPanel();
+    initTheme();
+ 
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      renderContactList(e.target.value);
+    });
+ 
+    if(window.innerWidth <= 820){
+      document.getElementById("app").classList.remove("chat-open");
+    }
+  }
+ 
+  document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>
+ 
